@@ -1,0 +1,281 @@
+// https://golang.org/ref/spec
+
+// https://golang.org/ref/spec#Characters
+newline        = { "\n" }
+unicode_char   = { !newline ~ ANY }
+unicode_letter = { 'a'..'z' | 'A'..'Z' }
+unicode_digit  = { '0'..'9' }
+
+// https://golang.org/ref/spec#Letters_and_digits
+letter        = { unicode_letter | "_" }
+decimal_digit = { '0'..'9' }
+binary_digit  = { "0" | "1" }
+octal_digit   = { '0'..'7' }
+hex_digit     = { '0'..'9' | 'A'..'F' | 'a'..'f' }
+
+// https://golang.org/ref/spec#Identifiers
+identifier = { letter ~ ( letter | unicode_digit ) }
+
+// https://golang.org/ref/spec#Integer_literals
+int_lit        = { decimal_lit | binary_lit | octal_lit | hex_lit }
+decimal_lit    = { "0" | ('1'..'9' ~ ( ( "_" )? ~ decimal_digits )?) }
+binary_lit     = { "0" ~ ( "b" | "B" )  ~ ( "_" )? ~ binary_digits }
+octal_lit      = { "0" ~ ( "o" | "O" )? ~ ( "_" )? ~ octal_digits }
+hex_lit        = { "0" ~ ( "x" | "X" )  ~ ( "_" )? ~ hex_digits }
+decimal_digits = { decimal_digit ~ ( ( "_" )? ~ decimal_digit ) }
+binary_digits  = { binary_digit  ~ ( ( "_" )? ~ binary_digit ) }
+octal_digits   = { octal_digit   ~ ( ( "_" )? ~ octal_digit ) }
+hex_digits     = { hex_digit     ~ ( ( "_" )? ~ hex_digit ) }
+
+// https://golang.org/ref/spec#Floating-point_literals
+float_lit         = { decimal_float_lit | hex_float_lit }
+decimal_float_lit = { decimal_digits ~ "." ~ ( decimal_digits )? ~ ( decimal_exponent )?
+                    | decimal_digits ~ decimal_exponent
+                    | "." ~ decimal_digits ~ ( decimal_exponent )? }
+decimal_exponent  = { ( "e" | "E" ) ~ ( "+" | "-" )? ~ decimal_digits }
+hex_float_lit     = { "0" ~ ( "x" | "X" ) ~ hex_mantissa ~ hex_exponent }
+hex_mantissa      = { ( "_" )? ~ hex_digits ~ "." ~ ( hex_digits )?
+                    | ( "_" )? ~ hex_digits
+                    | "." ~ hex_digits }
+hex_exponent      = { ( "p" | "P" ) ~ ( "+" | "-" )? ~ decimal_digits }
+
+// https://golang.org/ref/spec#Imaginary_literals
+imaginary_lit = { (decimal_digits | int_lit | float_lit) ~ "i" }
+
+// https://golang.org/ref/spec#Rune_literals
+rune_lit         = { "'" ~ ( unicode_value | byte_value ) ~ "'" }
+unicode_value    = { unicode_char | little_u_value | big_u_value | escaped_char }
+byte_value       = { octal_byte_value | hex_byte_value }
+octal_byte_value = { "\\" ~ octal_digit ~ octal_digit ~ octal_digit }
+hex_byte_value   = { "\\" ~ "x" ~ hex_digit{2} }
+little_u_value   = { "\\" ~ "u" ~ hex_digit{4} }
+big_u_value      = { "\\" ~ "U" ~ hex_digit{8} }
+escaped_char     = { "\\" ~ ( "a" | "b" | "f" | "n" | "r" | "t" | "v" | "\\" | "'" | "\"" ) }
+
+// https://golang.org/ref/spec#String_literals
+string_lit             = { raw_string_lit | interpreted_string_lit }
+raw_string_lit         = { "`" ~ ( unicode_char | newline )* ~ "`" }
+interpreted_string_lit = { "\"" ~ ( unicode_value | byte_value )* ~ "\"" }
+
+// https://golang.org/ref/spec#Types
+Type      = { TypeName | TypeLit | "(" ~ Type ~ ")" }
+TypeName  = { identifier | QualifiedIdent }
+TypeLit   = { ArrayType | StructType | PointerType | FunctionType
+            | InterfaceType | SliceType | MapType | ChannelType }
+
+// https://golang.org/ref/spec#Array_types
+ArrayType   = { "[" ~ ArrayLength ~ "]" ~ ElementType }
+ArrayLength = { Expression }
+ElementType = { Type }
+
+// https://golang.org/ref/spec#Slice_types
+SliceType = { "[" ~ "]" ~ ElementType }
+
+// https://golang.org/ref/spec#Struct_types
+StructType    = { "struct" ~ "{" ~ ( FieldDecl ~ ";" )* ~ "}" }
+FieldDecl     = { (IdentifierList ~ Type | EmbeddedField) ~ ( Tag )? }
+EmbeddedField = { ( "*" )? ~ TypeName }
+Tag           = { string_lit }
+
+// https://golang.org/ref/spec#Pointer_types
+PointerType = { "*" ~ BaseType }
+BaseType    = { Type }
+
+// https://golang.org/ref/spec#Function_types
+FunctionType  = { "func" ~ Signature }
+Signature     = { Parameters ~ ( Result )? }
+Result        = { Parameters | Type }
+Parameters    = { "(" ~ ( ParameterList ~ ( "," )? )? ~ ")" }
+ParameterList = { ParameterDecl ~ ( "," ~ ParameterDecl )* }
+ParameterDecl = { ( IdentifierList )? ~ ( "..." )? ~ Type }
+
+// https://golang.org/ref/spec#Interface_types
+InterfaceType     = { "interface" ~ "{" ~ ( ( MethodSpec | InterfaceTypeName ) ~ ";" )? ~ "}" }
+MethodSpec        = { MethodName ~ Signature }
+MethodName        = { identifier }
+InterfaceTypeName = { TypeName }
+
+// https://golang.org/ref/spec#Map_types
+MapType = { "map" ~ "[" ~ KeyType ~ "]" ~ ElementType }
+KeyType = { Type }
+
+// https://golang.org/ref/spec#Channel_types
+ChannelType = { ( "chan" | "chan" ~ "<-" | "<-" ~ "chan" ) ~ ElementType }
+
+// https://golang.org/ref/spec#Blocks
+Block         = { "{" ~ StatementList ~ "}" }
+StatementList = { ( Statement ~ ";" )* }
+
+// https://golang.org/ref/spec#Declarations_and_scope
+Declaration  = { ConstDecl | TypeDecl | VarDecl }
+TopLevelDecl = { Declaration | FunctionDecl | MethodDecl }
+
+// https://golang.org/ref/spec#Constant_declarations
+ConstDecl      = { "const" ~ ( ConstSpec | "(" ~ ( ConstSpec ~ ";" )* ~ ")" ) }
+ConstSpec      = { IdentifierList ~ ( ( Type )? ~ "=" ~ ExpressionList )? }
+IdentifierList = { identifier ~ ( "," ~ identifier )* }
+ExpressionList = { Expression ~ ( "," ~ Expression )* }
+
+// https://golang.org/ref/spec#Type_declarations
+TypeDecl  = { "type" ~ ( TypeSpec | "(" ~ ( TypeSpec ~ ";" )* ~ ")" ) }
+TypeSpec  = { AliasDecl | TypeDef }
+AliasDecl = { identifier ~ "=" ~ Type }
+TypeDef   = { identifier ~ Type }
+
+// https://golang.org/ref/spec#Variable_declarations
+VarDecl = { "var" ~ ( VarSpec | "(" ~ ( VarSpec ~ ";" )* ~ ")" ) }
+VarSpec = { IdentifierList ~ ( Type ~ ( "=" ~ ExpressionList )? | "=" ~ ExpressionList ) }
+
+// https://golang.org/ref/spec#Short_variable_declarations
+ShortVarDecl = { IdentifierList ~ ":=" ~ ExpressionList }
+
+// https://golang.org/ref/spec#Function_declarations
+FunctionDecl = { "func" ~ FunctionName ~ Signature ~ ( FunctionBody )? }
+FunctionName = { identifier }
+FunctionBody = { Block }
+
+// https://golang.org/ref/spec#Method_declarations
+MethodDecl = { "func" ~ Receiver ~ MethodName ~ Signature ~ ( FunctionBody )? }
+Receiver   = { Parameters }
+
+// https://golang.org/ref/spec#Operands
+Operand     = { Literal | OperandName | "(" ~ Expression ~ ")" }
+Literal     = { BasicLit | CompositeLit | FunctionLit }
+BasicLit    = { int_lit | float_lit | imaginary_lit | rune_lit | string_lit }
+OperandName = { identifier | QualifiedIdent }
+
+// https://golang.org/ref/spec#Qualified_identifiers
+QualifiedIdent = { PackageName ~ "." ~ identifier }
+
+// https://golang.org/ref/spec#Composite_literals
+CompositeLit  = { LiteralType ~ LiteralValue }
+LiteralType   = { StructType | ArrayType | "[" ~ "..." ~ "]" ~ ElementType
+                | SliceType | MapType | TypeName }
+LiteralValue  = { "{" ~ ( ElementList ~ ( "," )? )? ~ "}" }
+ElementList   = { KeyedElement ~ ( "," ~ KeyedElement )* }
+KeyedElement  = { ( Key ~ ":" )? ~ Element }
+Key           = { FieldName | Expression | LiteralValue }
+FieldName     = { identifier }
+Element       = { Expression | LiteralValue }
+
+// https://golang.org/ref/spec#Function_literals
+FunctionLit = { "func" ~ Signature ~ FunctionBody }
+
+// https://golang.org/ref/spec#Primary_expressions
+PrimaryExpr    = { Operand
+                 | Conversion
+                 | MethodExpr
+                 | PrimaryExpr ~ Selector
+                 | PrimaryExpr ~ Index
+                 | PrimaryExpr ~ Slice
+                 | PrimaryExpr ~ TypeAssertion
+                 | PrimaryExpr ~ Arguments }
+Selector       = { "." ~ identifier }
+Index          = { "[" ~ Expression ~ "]" }
+Slice          = { "[" ~ ( Expression )? ~ ":" ~ ( Expression )? ~ "]"
+                 | "[" ~ ( Expression )? ~ ":" ~ Expression ~ ":" ~ Expression ~ "]" }
+TypeAssertion  = { "." ~ "(" ~ Type ~ ")" }
+Arguments      = { "(" ~ ( ( ExpressionList | Type ~ ( "," ~ ExpressionList )? ) ~ ( "..." )? ~ ( "," )? )? ~ ")" }
+
+// https://golang.org/ref/spec#Method_expressions
+MethodExpr   = { ReceiverType ~ "." ~ MethodName }
+ReceiverType = { Type }
+
+// https://golang.org/ref/spec#Operators
+Expression = { UnaryExpr | Expression ~ binary_op ~ Expression }
+UnaryExpr  = { PrimaryExpr | unary_op ~ UnaryExpr }
+binary_op  = { "||" | "&&" | rel_op | add_op | mul_op }
+rel_op     = { "==" | "!=" | "<" | "<=" | ">" | ">=" }
+add_op     = { "+" | "-" | "|" | "^" }
+mul_op     = { "*" | "/" | "%" | "<<" | ">>" | "&" | "&^" }
+unary_op   = { "+" | "-" | "!" | "^" | "*" | "&" | "<-" }
+
+// https://golang.org/ref/spec#Conversions
+Conversion = { Type ~ "(" ~ Expression ~ ( "," )? ~ ")" }
+
+// https://golang.org/ref/spec#Statements
+// Note: removed the `EmptyStmt`
+Statement  = { Declaration | LabeledStmt | SimpleStmt | GoStmt | ReturnStmt
+             | BreakStmt | ContinueStmt | GotoStmt | FallthroughStmt | Block
+             | IfStmt | SwitchStmt | SelectStmt | ForStmt | DeferStmt }
+SimpleStmt = { ExpressionStmt | SendStmt | IncDecStmt | Assignment | ShortVarDecl }
+
+// https://golang.org/ref/spec#Labeled_statements
+LabeledStmt = { Label ~ ":" ~ Statement }
+Label       = { identifier }
+
+// https://golang.org/ref/spec#Expression_statements
+ExpressionStmt = { Expression }
+
+// https://golang.org/ref/spec#Send_statements
+SendStmt = { Channel ~ "<-" ~ Expression }
+Channel  = { Expression }
+
+// https://golang.org/ref/spec#IncDec_statements
+IncDecStmt = { Expression ~ ( "++" | "--" ) }
+
+// https://golang.org/ref/spec#Assignments
+Assignment = { ExpressionList ~ assign_op ~ ExpressionList }
+assign_op = { ( add_op | mul_op )? ~ "=" }
+
+// https://golang.org/ref/spec#If_statements
+IfStmt = { "if" ~ ( SimpleStmt ~ ";" )? ~ Expression ~ Block ~ ( "else" ~ ( IfStmt | Block ) )? }
+
+// https://golang.org/ref/spec#Switch_statements
+SwitchStmt      = { ExprSwitchStmt | TypeSwitchStmt }
+ExprSwitchStmt  = { "switch" ~ ( SimpleStmt ~ ";" )? ~ ( Expression )? ~ "{" ~ ( ExprCaseClause )* ~ "}" }
+ExprCaseClause  = { ExprSwitchCase ~ ":" ~ StatementList }
+ExprSwitchCase  = { "case" ~ ExpressionList | "default" }
+TypeSwitchStmt  = { "switch" ~ ( SimpleStmt ~ ";" )? ~ TypeSwitchGuard ~ "{" ~ ( TypeCaseClause )* ~ "}" }
+TypeSwitchGuard = { ( identifier ~ ":=" )? ~ PrimaryExpr ~ "." ~ "(" ~ "type" ~ ")" }
+TypeCaseClause  = { TypeSwitchCase ~ ":" ~ StatementList }
+TypeSwitchCase  = { "case" ~ TypeList | "default" }
+TypeList        = { Type ~ ( "," ~ Type ) }
+
+// https://golang.org/ref/spec#For_statements
+ForStmt     = { "for" ~ ( Condition | ForClause | RangeClause )? ~ Block }
+Condition   = { Expression }
+ForClause   = { ( InitStmt )? ~ ";" ~ ( Condition )? ~ ";" ~ ( PostStmt )? }
+InitStmt    = { SimpleStmt }
+PostStmt    = { SimpleStmt }
+RangeClause = { ( ExpressionList ~ "=" | IdentifierList ~ ":=" )? ~ "range" ~ Expression }
+
+// https://golang.org/ref/spec#Go_statements
+GoStmt = { "go" ~ Expression }
+
+// https://golang.org/ref/spec#Select_statements
+SelectStmt = { "select" ~ "{" ~ ( CommClause )? ~ "}" }
+CommClause = { CommCase ~ ":" ~ StatementList }
+CommCase   = { "case" ~ ( SendStmt | RecvStmt ) | "default" }
+RecvStmt   = { ( ExpressionList ~ "=" | IdentifierList ~ ":=" )? ~ RecvExpr }
+RecvExpr   = { Expression }
+
+// https://golang.org/ref/spec#Return_statements
+ReturnStmt = { "return" ~ ( ExpressionList )? }
+
+// https://golang.org/ref/spec#Break_statements
+BreakStmt = { "break" ~ ( Label )? }
+
+// https://golang.org/ref/spec#Continue_statements
+ContinueStmt = { "continue" ~ ( Label )? }
+
+// https://golang.org/ref/spec#Goto_statements
+GotoStmt = { "goto" ~ Label }
+
+// https://golang.org/ref/spec#Fallthrough_statements
+FallthroughStmt = { "fallthrough" }
+
+// https://golang.org/ref/spec#Defer_statements
+DeferStmt = { "defer" ~ Expression }
+
+// https://golang.org/ref/spec#Source_file_organization
+SourceFile = { PackageClause ~ ";" ~ ( ImportDecl ~ ";" )* ~ ( TopLevelDecl ~ ";" )* }
+
+// https://golang.org/ref/spec#PackageClause
+PackageClause = { "package" ~ PackageName }
+PackageName   = { identifier }
+
+// https://golang.org/ref/spec#ImportDecl
+ImportDecl = { "import" ~ ( ImportSpec | ( "(" ~ ( ImportSpec ~ ";" )* ~ ")" ) ) }
+ImportSpec = { ( "." | PackageName )? ~ ImportPath }
+ImportPath = { string_lit }
