@@ -1,4 +1,0 @@
-```
-go run .
-cargo run .
-```

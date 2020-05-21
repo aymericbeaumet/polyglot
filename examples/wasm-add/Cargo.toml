@@ -9,7 +9,7 @@ name = "wasm-add"
 path = "main.rs"
 
 [build-dependencies]
-polyglot = { path = "../.." }
+polyglot_build = { path = "../../polyglot-build" }
 
 [dependencies]
-polyglot = { path = "../.." }
+polyglot = { path = "../../polyglot" }

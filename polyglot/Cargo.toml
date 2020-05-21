@@ -1,0 +1,8 @@
+[package]
+name = "polyglot"
+version = "0.1.0"
+authors = ["Aymeric Beaumet <hi@aymericbeaumet.com>"]
+edition = "2018"
+
+[dependencies]
+wasmtime = "0.16.0"

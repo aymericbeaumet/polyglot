@@ -1,3 +1,3 @@
 fn main() {
-    polyglot::build().unwrap();
+    polyglot_build::build().unwrap();
 }
