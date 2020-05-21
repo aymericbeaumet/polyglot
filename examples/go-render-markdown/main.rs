@@ -1,6 +1,6 @@
 use std::io::prelude::Read;
 
-polyglot::go_import!(blackfriday "github.com/russross/blackfriday/v2");
+polyglot::go!(blackfriday "github.com/russross/blackfriday/v2");
 
 fn main() {
     let mut file = std::fs::File::open("sample.md").unwrap();
