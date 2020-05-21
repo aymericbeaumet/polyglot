@@ -5,4 +5,6 @@ authors = ["Aymeric Beaumet <hi@aymericbeaumet.com>"]
 edition = "2018"
 
 [dependencies]
+glob = "0.3.0"
+regex = "1"
 wasmtime = "0.16.0"

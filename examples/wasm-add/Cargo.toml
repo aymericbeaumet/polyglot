@@ -8,5 +8,8 @@ edition = "2018"
 name = "wasm-add"
 path = "main.rs"
 
+[build-dependencies]
+polyglot = { path = "../.." }
+
 [dependencies]
 polyglot = { path = "../.." }
