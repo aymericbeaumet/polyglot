@@ -5,3 +5,4 @@ authors = ["Aymeric Beaumet <hi@aymericbeaumet.com>"]
 edition = "2018"
 
 [dependencies]
+wasmtime = "0.16.0"

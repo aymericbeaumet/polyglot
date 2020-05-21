@@ -1,7 +1,9 @@
+pub extern crate wasmtime;
+
 #[macro_export]
 macro_rules! go {
-    ($a:ident $e:expr) => {
-        mod $a {
+    ($mod_name:ident $ref:expr) => {
+        mod $mod_name {
             pub fn Run(input: &[u8]) -> &[u8] {
                 &[]
             }
@@ -11,10 +13,22 @@ macro_rules! go {
 
 #[macro_export]
 macro_rules! wasm {
-    ($a:ident $e:expr) => {
-        mod $a {
+    ($mod_name:ident $ref:expr) => {
+        mod $mod_name {
+            use $crate::wasmtime;
+
             pub fn add(a: i32, b: i32) -> i32 {
-                a + b
+                let store = wasmtime::Store::default();
+
+                let module = wasmtime::Module::from_file(&store, $ref).unwrap();
+
+                let instance = wasmtime::Instance::new(&module, &[]).unwrap();
+
+                let answer = instance.get_func("add").unwrap();
+
+                let answer = answer.get2::<i32, i32, i32>().unwrap();
+
+                answer(a, b).unwrap()
             }
         }
     };
