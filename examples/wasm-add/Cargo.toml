@@ -4,10 +4,6 @@ version = "0.1.0"
 authors = ["Aymeric Beaumet <hi@aymericbeaumet.com>"]
 edition = "2018"
 
-[[bin]]
-name = "wasm-add"
-path = "main.rs"
-
 [build-dependencies]
 polyglot_build = { path = "../../polyglot-build" }
 
