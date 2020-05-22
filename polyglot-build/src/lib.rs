@@ -2,9 +2,11 @@ use glob::glob;
 use regex::Regex;
 use std::env;
 use std::error::Error;
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
-use std::{fs, fs::File};
+
+mod wasm;
 
 #[derive(Default)]
 pub struct BuildOptions {}
@@ -53,38 +55,8 @@ pub fn generate_mod(
     relative_path: &str,
     absolute_path: &Path,
 ) -> Result<(), Box<dyn Error>> {
-    let outdir = env::var_os("OUT_DIR").unwrap();
-    let outfile = Path::new(&outdir)
-        .join("polyglot")
-        .join(relative_path)
-        .join("mod.rs");
-
-    let contents = format!(
-        r#"
-mod {} {{
-    use ::polyglot::wasmtime;
-
-    pub fn add(a: i32, b: i32) -> i32 {{
-        let store = wasmtime::Store::default();
-
-        let module = wasmtime::Module::from_file(&store, "{}").unwrap();
-
-        let instance = wasmtime::Instance::new(&module, &[]).unwrap();
-
-        let answer = instance.get_func("add").unwrap();
-
-        let answer = answer.get2::<i32, i32, i32>().unwrap();
-
-        answer(a, b).unwrap()
-    }}
-}}
-"#,
-        mod_name,
-        absolute_path.to_str().unwrap(),
-    );
-
-    fs::create_dir_all(&Path::parent(&outfile).unwrap())?;
-    fs::write(&outfile, contents)?;
-
-    Ok(())
+    match language {
+        "wasm" => wasm::generate_mod(mod_name, relative_path, absolute_path),
+        _ => unreachable!("unsupported language: {}", language),
+    }
 }
